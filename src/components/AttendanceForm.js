@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 
-const API_BASE_URL = 'https://employee-attendance-backend-cmu3.vercel.app/';
+const API_BASE_URL = 'https://employee-attendance-backend-cmu3.vercel.app';
 
 const AttendanceForm = ({ onAttendanceAdded }) => {
   const [formData, setFormData] = useState({
@@ -32,7 +32,17 @@ const AttendanceForm = ({ onAttendanceAdded }) => {
     setMessage('');
 
     try {
-      const response = await axios.post(`${API_BASE_URL}/attendance`, formData);
+      console.log('📝 Submitting to:', `${API_BASE_URL}/api/attendance`);
+      console.log('📦 Data:', formData);
+      
+      const response = await axios.post(`${API_BASE_URL}/api/attendance`, formData, {
+        timeout: 10000,
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      console.log('✅ Submit success:', response.data);
       setMessage(response.data.message);
       setFormData({
         employeeName: '',
@@ -41,9 +51,23 @@ const AttendanceForm = ({ onAttendanceAdded }) => {
         status: 'Present'
       });
       onAttendanceAdded();
+      
     } catch (error) {
-      console.error('Error submitting attendance:', error);
-      setMessage(error.response?.data?.error || 'Failed to record attendance');
+      console.error('❌ Submit failed:', error);
+      
+      let errorMessage = 'Failed to record attendance';
+      
+      if (error.code === 'ECONNABORTED') {
+        errorMessage = 'Request timeout - server may be down';
+      } else if (error.response) {
+        errorMessage = error.response.data?.error || `Server error: ${error.response.status}`;
+      } else if (error.request) {
+        errorMessage = 'Cannot connect to server. Please check if backend is running.';
+      } else {
+        errorMessage = `Unexpected error: ${error.message}`;
+      }
+      
+      setMessage(errorMessage);
     } finally {
       setIsLoading(false);
     }

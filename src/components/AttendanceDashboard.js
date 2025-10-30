@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 
-const API_BASE_URL = 'https://employee-attendance-backend-cmu3.vercel.app/';
+const API_BASE_URL = 'https://employee-attendance-backend-cmu3.vercel.app';
 
 const AttendanceDashboard = () => {
   const [attendance, setAttendance] = useState([]);
@@ -21,13 +21,38 @@ const AttendanceDashboard = () => {
   const fetchAttendance = async () => {
     try {
       setLoading(true);
-      const res = await axios.get(`${API_BASE_URL}/attendance`);
+      setError('');
+      console.log('🔄 Fetching from:', `${API_BASE_URL}/api/attendance`);
+      
+      const res = await axios.get(`${API_BASE_URL}/api/attendance`, {
+        timeout: 10000,
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+      
       console.log('✅ Attendance fetched:', res.data);
       setAttendance(res.data);
       setFiltered(res.data);
+      
     } catch (err) {
       console.error('❌ Fetch failed:', err);
-      setError('Failed to fetch attendance records');
+      
+      let errorMessage = 'Failed to fetch attendance records';
+      
+      if (err.code === 'ECONNABORTED') {
+        errorMessage = 'Request timeout - server may be down';
+      } else if (err.response) {
+        // Server responded with error status
+        errorMessage = `Server error: ${err.response.status} - ${err.response.data?.error || 'Unknown error'}`;
+      } else if (err.request) {
+        // No response received
+        errorMessage = 'Cannot connect to server. Please check if backend is running.';
+      } else {
+        errorMessage = `Unexpected error: ${err.message}`;
+      }
+      
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -46,7 +71,7 @@ const AttendanceDashboard = () => {
     console.log('🧩 Deleting ID:', id);
 
     try {
-      const res = await axios.delete(`${API_BASE_URL}/attendance/${id}`);
+      const res = await axios.delete(`${API_BASE_URL}/api/attendance/${id}`);
       console.log('✅ Delete success:', res.data);
 
       if (res.data.success) {
@@ -63,8 +88,34 @@ const AttendanceDashboard = () => {
 
   const clearFilters = () => setFilters({ date: '', employeeName: '', employeeID: '' });
 
-  if (loading) return <p>Loading attendance...</p>;
-  if (error) return <p>{error}</p>;
+  const retryFetch = () => {
+    fetchAttendance();
+  };
+
+  if (loading) return (
+    <div style={{ textAlign: 'center', padding: '2rem' }}>
+      <p>Loading attendance records...</p>
+    </div>
+  );
+
+  if (error) return (
+    <div style={{ textAlign: 'center', padding: '2rem' }}>
+      <p style={{ color: 'red', marginBottom: '1rem' }}>{error}</p>
+      <button 
+        onClick={retryFetch}
+        style={{
+          background: '#1a237e',
+          color: 'white',
+          border: 'none',
+          padding: '0.5rem 1rem',
+          borderRadius: '6px',
+          cursor: 'pointer'
+        }}
+      >
+        Try Again
+      </button>
+    </div>
+  );
 
   return (
     <div className="attendance-dashboard">
