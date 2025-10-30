@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 
-const API_BASE_URL = 'https://employee-attendance-backend-cmu3.vercel.app';
+const API_BASE_URL = 'https://employee-attendance-backend-dusky.vercel.app';
 
 const AttendanceForm = ({ onAttendanceAdded }) => {
   const [formData, setFormData] = useState({
