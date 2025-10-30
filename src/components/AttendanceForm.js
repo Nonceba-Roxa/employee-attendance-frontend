@@ -34,11 +34,10 @@ const AttendanceForm = ({ onAttendanceAdded }) => {
         date: new Date().toISOString().split("T")[0],
         status: "Present"
       });
-      onAttendanceAdded?.(); // refresh parent dashboard
+      onAttendanceAdded?.();
     } catch (error) {
-      console.error("Error submitting attendance:", error);
-      const errMsg = error.response?.data?.error || error.message || "Failed to record attendance";
-      setMessage(errMsg);
+      console.error("Error submitting attendance:", error.response?.data || error.message);
+      setMessage(error.response?.data?.error || "Failed to record attendance");
     } finally {
       setIsLoading(false);
     }
@@ -47,56 +46,29 @@ const AttendanceForm = ({ onAttendanceAdded }) => {
   return (
     <div className="attendance-form">
       <h2>GlowSkin's Employee Attendance</h2>
-
-      {message && <div className={`message`}>{message}</div>}
+      {message && <div className="message">{message}</div>}
 
       <form onSubmit={handleSubmit}>
-        <div className="form-group">
+        <div>
           <label>Employee Name *</label>
-          <input
-            type="text"
-            name="employeeName"
-            value={formData.employeeName}
-            onChange={handleChange}
-            placeholder="Enter employee name"
-            required
-          />
+          <input type="text" name="employeeName" value={formData.employeeName} onChange={handleChange} required />
         </div>
-
-        <div className="form-group">
+        <div>
           <label>Employee ID *</label>
-          <input
-            type="text"
-            name="employeeID"
-            value={formData.employeeID}
-            onChange={handleChange}
-            placeholder="Enter employee ID"
-            required
-          />
+          <input type="text" name="employeeID" value={formData.employeeID} onChange={handleChange} required />
         </div>
-
-        <div className="form-group">
+        <div>
           <label>Date</label>
-          <input
-            type="date"
-            name="date"
-            value={formData.date}
-            onChange={handleChange}
-            required
-          />
+          <input type="date" name="date" value={formData.date} onChange={handleChange} required />
         </div>
-
-        <div className="form-group">
+        <div>
           <label>Status</label>
           <select name="status" value={formData.status} onChange={handleChange} required>
             <option value="Present">Present</option>
             <option value="Absent">Absent</option>
           </select>
         </div>
-
-        <button type="submit" disabled={isLoading}>
-          {isLoading ? "Recording..." : "Record Attendance"}
-        </button>
+        <button type="submit" disabled={isLoading}>{isLoading ? "Recording..." : "Record Attendance"}</button>
       </form>
     </div>
   );

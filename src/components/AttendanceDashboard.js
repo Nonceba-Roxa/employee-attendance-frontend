@@ -25,7 +25,7 @@ const AttendanceDashboard = () => {
       setAttendance(res.data);
       setFiltered(res.data);
     } catch (err) {
-      console.error("Fetch failed:", err);
+      console.error("Fetch failed:", err.response?.data || err.message);
       setError("Failed to fetch attendance records from backend");
     } finally {
       setLoading(false);
@@ -35,12 +35,8 @@ const AttendanceDashboard = () => {
   const applyFilters = () => {
     let data = [...attendance];
     if (filters.date) data = data.filter(r => r.date?.startsWith(filters.date));
-    if (filters.employeeName) data = data.filter(r =>
-      r.employeeName?.toLowerCase().includes(filters.employeeName.toLowerCase())
-    );
-    if (filters.employeeID) data = data.filter(r =>
-      r.employeeID?.toLowerCase().includes(filters.employeeID.toLowerCase())
-    );
+    if (filters.employeeName) data = data.filter(r => r.employeeName?.toLowerCase().includes(filters.employeeName.toLowerCase()));
+    if (filters.employeeID) data = data.filter(r => r.employeeID?.toLowerCase().includes(filters.employeeID.toLowerCase()));
     setFiltered(data);
   };
 
@@ -48,9 +44,9 @@ const AttendanceDashboard = () => {
     if (!window.confirm(`Delete record for ${name}?`)) return;
 
     try {
-      const res = await axios.delete(`${API_BASE_URL}/attendance/${id}`);
+      await axios.delete(`${API_BASE_URL}/attendance/${id}`);
       alert(`Record for ${name} deleted successfully`);
-      fetchAttendance(); // refresh list
+      fetchAttendance();
     } catch (err) {
       console.error("Delete failed:", err);
       alert("Error deleting record. Check console for details.");
@@ -67,23 +63,9 @@ const AttendanceDashboard = () => {
       <h2>GlowSkin's Attendance Records</h2>
 
       <div className="filters">
-        <input
-          type="date"
-          value={filters.date}
-          onChange={e => setFilters({ ...filters, date: e.target.value })}
-        />
-        <input
-          type="text"
-          placeholder="Employee Name"
-          value={filters.employeeName}
-          onChange={e => setFilters({ ...filters, employeeName: e.target.value })}
-        />
-        <input
-          type="text"
-          placeholder="Employee ID"
-          value={filters.employeeID}
-          onChange={e => setFilters({ ...filters, employeeID: e.target.value })}
-        />
+        <input type="date" value={filters.date} onChange={e => setFilters({ ...filters, date: e.target.value })} />
+        <input type="text" placeholder="Employee Name" value={filters.employeeName} onChange={e => setFilters({ ...filters, employeeName: e.target.value })} />
+        <input type="text" placeholder="Employee ID" value={filters.employeeID} onChange={e => setFilters({ ...filters, employeeID: e.target.value })} />
         <button onClick={clearFilters}>Clear</button>
       </div>
 
